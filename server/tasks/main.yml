@@ -1,0 +1,49 @@
+---
+    - name: Update APT package cache
+      apt:
+        update_cache: yes
+
+    - name: Upgrade APT packages
+      apt:
+        upgrade: yes
+
+    - name: Change hostname
+      hostname:
+        name: "{{ hostname }}"
+
+    - name: Set timezone
+      timezone:
+        name: Asia/Kolkata
+
+    - name: Install required packages
+      package:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - net-tools
+        - unzip
+
+    - name: Load encrypted password file
+      include_vars: password.yml      
+
+    - name: Create user
+      user:
+        name: "{{ username }}"
+        password: "{{ my_password | password_hash('sha512') }}"
+        groups: sudo
+        shell: /bin/bash
+      notify: restart sshd
+
+    - name: Enable PasswordAuthentication in sshd_config
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?PasswordAuthentication'
+        line: 'PasswordAuthentication yes'
+      notify: restart sshd
+
+    - name: Enable KbdInteractiveAuthentication in sshd_config
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?KbdInteractiveAuthentication'
+        line: 'KbdInteractiveAuthentication yes'
+      notify: restart sshd

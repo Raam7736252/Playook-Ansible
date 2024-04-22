@@ -1,0 +1,6 @@
+---
+- name: Prequiest of the server
+  hosts: "{{ host }}"
+  become: yes
+  roles:
+    - server
